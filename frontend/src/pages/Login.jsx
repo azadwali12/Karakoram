@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../auth.jsx';
 import { Alert, Field } from '../components/ui.jsx';
+import { TrekImage } from '../components/media.jsx';
 
 const emptyRegister = {
   full_name: '', email: '', phone: '', cnic_passport: '', nationality: 'Pakistani',
@@ -44,42 +45,59 @@ export default function Login() {
   }
 
   return (
-    <main className={`page auth-wrap ${tab === 'register' ? 'wide' : ''}`}>
-      <div className="tabs" role="tablist">
-        <button role="tab" aria-selected={tab === 'login'} className={tab === 'login' ? 'on' : ''} onClick={() => switchTab('login')}>Log in</button>
-        <button role="tab" aria-selected={tab === 'register'} className={tab === 'register' ? 'on' : ''} onClick={() => switchTab('register')}>Create account</button>
-        <button role="tab" aria-selected={tab === 'admin'} className={tab === 'admin' ? 'on' : ''} onClick={() => switchTab('admin')}>Office staff</button>
+    <main className="auth">
+      <div className="auth-visual">
+        <TrekImage name="Rush Lake" src="/images/login.jpg" seed={4} />
+        <div className="auth-quote">
+          <div className="eyebrow">Karakoram Trails</div>
+          <h2>The mountains are calling.</h2>
+          <p>Book seats, rent gear and pay in instalments, all in one place.</p>
+        </div>
       </div>
-      <Alert>{error}</Alert>
 
-      {tab !== 'register' ? (
-        <form onSubmit={doLogin} className="panel">
-          <Field label={tab === 'admin' ? 'Username' : 'Email'}>
-            <input type={tab === 'admin' ? 'text' : 'email'} value={form.email} onChange={set('email')} required autoComplete="username" />
-          </Field>
-          <Field label="Password">
-            <input type="password" value={form.password} onChange={set('password')} required autoComplete="current-password" />
-          </Field>
-          <button className="btn">Log in</button>
-          <p className="small muted" style={{ marginTop: 14, marginBottom: 0 }}>
-            {tab === 'admin' ? 'Demo: admin / admin123' : 'Demo: ayesha@example.com / password123'}
+      <div className="auth-side">
+        <div className={`auth-card ${tab === 'register' ? 'wide' : ''}`}>
+          <h1>{tab === 'register' ? 'Create your account' : tab === 'admin' ? 'Office login' : 'Welcome back'}</h1>
+          <p className="muted" style={{ margin: 0 }}>
+            {tab === 'register' ? 'Takes a minute. We need your ID for trekking permits.' : 'Log in to book treks and manage your trips.'}
           </p>
-        </form>
-      ) : (
-        <form onSubmit={doRegister} className="panel">
-          <div className="form-grid">
-            <Field label="Full name" className="full"><input value={reg.full_name} onChange={setR('full_name')} required /></Field>
-            <Field label="Email"><input type="email" value={reg.email} onChange={setR('email')} required /></Field>
-            <Field label="Phone"><input value={reg.phone} onChange={setR('phone')} required /></Field>
-            <Field label="CNIC or passport number" hint="Needed for trekking permits"><input value={reg.cnic_passport} onChange={setR('cnic_passport')} required /></Field>
-            <Field label="Nationality"><input value={reg.nationality} onChange={setR('nationality')} /></Field>
-            <Field label="Emergency contact name"><input value={reg.emergency_contact_name} onChange={setR('emergency_contact_name')} required /></Field>
-            <Field label="Emergency contact phone"><input value={reg.emergency_contact_phone} onChange={setR('emergency_contact_phone')} required /></Field>
-            <Field label="Password" hint="At least 6 characters" className="full"><input type="password" value={reg.password} onChange={setR('password')} minLength={6} required autoComplete="new-password" /></Field>
+          <div className="tabs" role="tablist">
+            <button role="tab" aria-selected={tab === 'login'} className={tab === 'login' ? 'on' : ''} onClick={() => switchTab('login')}>Log in</button>
+            <button role="tab" aria-selected={tab === 'register'} className={tab === 'register' ? 'on' : ''} onClick={() => switchTab('register')}>Create account</button>
+            <button role="tab" aria-selected={tab === 'admin'} className={tab === 'admin' ? 'on' : ''} onClick={() => switchTab('admin')}>Office staff</button>
           </div>
-          <button className="btn">Create account</button>
-        </form>
-      )}
+          <Alert>{error}</Alert>
+
+          {tab !== 'register' ? (
+            <form onSubmit={doLogin}>
+              <Field label={tab === 'admin' ? 'Username' : 'Email'}>
+                <input type={tab === 'admin' ? 'text' : 'email'} value={form.email} onChange={set('email')} required autoComplete="username" />
+              </Field>
+              <Field label="Password">
+                <input type="password" value={form.password} onChange={set('password')} required autoComplete="current-password" />
+              </Field>
+              <button className="btn block">Log in</button>
+              <div className="demo">
+                Demo login: <code>{tab === 'admin' ? 'admin / admin123' : 'ayesha@example.com / password123'}</code>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={doRegister}>
+              <div className="form-grid">
+                <Field label="Full name" className="full"><input value={reg.full_name} onChange={setR('full_name')} required /></Field>
+                <Field label="Email"><input type="email" value={reg.email} onChange={setR('email')} required /></Field>
+                <Field label="Phone"><input value={reg.phone} onChange={setR('phone')} required /></Field>
+                <Field label="CNIC or passport number" hint="Needed for trekking permits"><input value={reg.cnic_passport} onChange={setR('cnic_passport')} required /></Field>
+                <Field label="Nationality"><input value={reg.nationality} onChange={setR('nationality')} /></Field>
+                <Field label="Emergency contact name"><input value={reg.emergency_contact_name} onChange={setR('emergency_contact_name')} required /></Field>
+                <Field label="Emergency contact phone"><input value={reg.emergency_contact_phone} onChange={setR('emergency_contact_phone')} required /></Field>
+                <Field label="Password" hint="At least 6 characters" className="full"><input type="password" value={reg.password} onChange={setR('password')} minLength={6} required autoComplete="new-password" /></Field>
+              </div>
+              <button className="btn block">Create account</button>
+            </form>
+          )}
+        </div>
+      </div>
     </main>
   );
 }

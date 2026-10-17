@@ -1,6 +1,26 @@
 // Small shared pieces used on many screens.
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '../api.js';
+
+// Fades and lifts its content into view the first time it scrolls on screen
+export function Reveal({ as: Tag = 'div', delay = 0, className = '', children, ...rest }) {
+  const ref = useRef(null);
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !('IntersectionObserver' in window)) { setShown(true); return; }
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setShown(true); io.disconnect(); }
+    }, { threshold: 0.12 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <Tag ref={ref} className={`reveal ${shown ? 'in' : ''} ${className}`} style={{ '--d': `${delay * 80}ms` }} {...rest}>
+      {children}
+    </Tag>
+  );
+}
 
 // Load data from an API path; returns { data, error, loading, reload }
 export function useLoad(path, deps = []) {

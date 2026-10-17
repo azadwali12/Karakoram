@@ -1,8 +1,9 @@
 // Screen: Book a Trek — choose group size and gear (CREATE booking)
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { api, rs, date } from '../api.js';
+import { api, rs, date, today } from '../api.js';
 import { useLoad, Alert, Field } from '../components/ui.jsx';
+import { TrekImage } from '../components/media.jsx';
 
 export default function Book() {
   const { departureId } = useParams();
@@ -16,6 +17,24 @@ export default function Book() {
 
   if (depError) return <main className="page"><Alert>{depError}</Alert></main>;
   if (!dep || !gear) return <main className="page muted">Loading…</main>;
+
+  // The database refuses bookings on departures that are not open or have already started,
+  // so say so up front instead of letting the customer fill in the form first
+  if (dep.status !== 'Open' || String(dep.start_date).slice(0, 10) <= today()) {
+    return (
+      <main className="page">
+        <Link to={`/treks/${dep.trek_id}`} className="back">Back to {dep.trek_name}</Link>
+        <div className="panel" style={{ marginTop: 20, maxWidth: 640 }}>
+          <h1>This date can no longer be booked</h1>
+          <p className="muted">
+            {dep.trek_name}, {date(dep.start_date)} – {date(dep.end_date)}, is {dep.status.toLowerCase()}
+            {dep.status === 'Open' ? ' but has already started' : ''}.
+          </p>
+          <Link to={`/treks/${dep.trek_id}`} className="btn">See other dates</Link>
+        </div>
+      </main>
+    );
+  }
 
   const seatsCost = groupSize * dep.price_per_person;
   const gearCost = gear.reduce((s, g) => s + (qty[g.equipment_id] || 0) * g.rent_price_per_trip, 0);
@@ -42,9 +61,15 @@ export default function Book() {
 
   return (
     <main className="page">
-      <Link to={`/treks/${dep.trek_id}`} className="small">Back to {dep.trek_name}</Link>
-      <h1 style={{ marginTop: 12 }}>Book {dep.trek_name}</h1>
-      <p className="muted">{date(dep.start_date)} – {date(dep.end_date)} · {dep.seats_left} seats left</p>
+      <Link to={`/treks/${dep.trek_id}`} className="back">Back to {dep.trek_name}</Link>
+      <div className="book-head">
+        <TrekImage name={dep.trek_name} alt="" />
+        <div>
+          <div className="eyebrow">Book your seats</div>
+          <h1>{dep.trek_name}</h1>
+          <p className="muted" style={{ margin: 0 }}>{date(dep.start_date)} – {date(dep.end_date)} · {dep.seats_left} seats left · guide: {dep.guide_name || 'to be assigned'}</p>
+        </div>
+      </div>
 
       <form className="detail-grid" onSubmit={submit}>
         <div>
@@ -82,7 +107,7 @@ export default function Book() {
           </div>
         </div>
 
-        <aside className="panel">
+        <aside className="panel sticky">
           <h2>Summary</h2>
           <div className="summary-row"><span>{groupSize} × {rs(dep.price_per_person)}</span><span>{rs(seatsCost)}</span></div>
           <div className="summary-row"><span>Gear</span><span>{rs(gearCost)}</span></div>
@@ -91,7 +116,7 @@ export default function Book() {
             Your seats are held now. The booking is confirmed once you pay an advance of at least {rs(Math.ceil(total * 0.3))} (30%).
           </p>
           <Alert>{error}</Alert>
-          <button className="btn" style={{ width: '100%' }} disabled={saving}>
+          <button className="btn block" disabled={saving}>
             {saving ? 'Booking…' : 'Book trek'}
           </button>
         </aside>

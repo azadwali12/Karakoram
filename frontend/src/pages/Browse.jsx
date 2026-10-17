@@ -2,41 +2,56 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { rs, date } from '../api.js';
-import { useLoad, Alert, Chip, Altitude, Empty } from '../components/ui.jsx';
-
-function Ridge() {
-  // A Karakoram skyline that melts into the page background
-  return (
-    <svg className="ridge" viewBox="0 0 1200 150" preserveAspectRatio="none" aria-hidden="true">
-      <path fill="#3c4d59" d="M0 150 L0 96 L70 70 L130 88 L210 40 L260 62 L330 18 L380 52 L430 44 L500 78 L560 58 L640 20 L690 46 L760 34 L820 66 L900 30 L960 58 L1040 48 L1100 74 L1200 56 L1200 150 Z" />
-      <path fill="#f7f9fa" d="M0 150 L0 122 L90 104 L170 118 L260 92 L340 110 L420 96 L520 120 L610 98 L700 114 L790 100 L880 118 L970 102 L1060 116 L1140 104 L1200 112 L1200 150 Z" />
-      <path fill="#e3edf2" d="M330 18 L346 30 L338 34 L322 30 Z M640 20 L656 33 L646 36 L630 32 Z M900 30 L914 41 L904 44 L890 40 Z" />
-    </svg>
-  );
-}
+import { useLoad, Alert, Chip, Altitude, Empty, Reveal } from '../components/ui.jsx';
+import { TrekImage } from '../components/media.jsx';
+import { useAuth } from '../auth.jsx';
 
 export default function Browse() {
   const [filters, setFilters] = useState({ region: '', difficulty: '', search: '' });
   const qs = new URLSearchParams(filters).toString();
   const { data: treks, error, loading } = useLoad(`/treks?${qs}`, [qs]);
+  const { data: all } = useLoad('/treks');
   const { data: regions } = useLoad('/regions');
+  const { user } = useAuth();
   const set = (k) => (e) => setFilters({ ...filters, [k]: e.target.value });
+
+  const highest = all ? Math.max(...all.map((t) => t.max_altitude_m)) : null;
+  const openDates = all ? all.reduce((s, t) => s + Number(t.open_departures || 0), 0) : null;
+  const cheapest = all ? Math.min(...all.filter((t) => t.from_price).map((t) => Number(t.from_price))) : null;
 
   return (
     <>
       <section className="hero">
+        <TrekImage name="hero" src="/images/hero.jpg" seed={7} eager />
         <div className="hero-inner">
-          <h1>Treks across Gilgit-Baltistan</h1>
-          <p>From a weekend at Rakaposhi Base Camp to three weeks on the Baltoro Glacier. Pick a date, see how many seats are left, and book with a 30% advance.</p>
+          <span className="pill"><span className="dot" /> Booking open for the autumn and winter season</span>
+          <h1>Walk among the <span className="grad-text">giants of the Karakoram</span></h1>
+          <p className="lead">
+            From a weekend at Rakaposhi Base Camp to three weeks on the Baltoro Glacier beneath K2.
+            Pick a date, see how many seats are left, and book with a 30% advance.
+          </p>
+          <div className="btn-row">
+            <a href="#treks" className="btn">Explore treks</a>
+            {user?.role === 'customer'
+              ? <Link to="/my/bookings" className="btn secondary">My bookings</Link>
+              : <Link to="/login" className="btn secondary">Create an account</Link>}
+          </div>
+          {all && (
+            <div className="hero-stats">
+              <div className="hero-stat glass"><b>{all.length}</b><span>guided routes</span></div>
+              <div className="hero-stat glass"><b>{highest.toLocaleString()} m</b><span>highest point</span></div>
+              <div className="hero-stat glass"><b>{openDates}</b><span>open departures</span></div>
+              {Number.isFinite(cheapest) && <div className="hero-stat glass"><b>{rs(cheapest)}</b><span>trips start from</span></div>}
+            </div>
+          )}
         </div>
-        <Ridge />
       </section>
 
-      <main className="page" style={{ paddingTop: 8 }}>
-        <div className="filters" role="search">
+      <div className="searchbar" role="search">
+        <div className="searchbar-inner glass">
           <div className="field">
             <label htmlFor="f-search">Search</label>
-            <input id="f-search" value={filters.search} onChange={set('search')} placeholder="Trek or region" />
+            <input id="f-search" value={filters.search} onChange={set('search')} placeholder="K2, Hunza, lake…" />
           </div>
           <div className="field">
             <label htmlFor="f-region">Region</label>
@@ -52,38 +67,54 @@ export default function Browse() {
               {['Easy', 'Moderate', 'Hard', 'Extreme'].map((d) => <option key={d}>{d}</option>)}
             </select>
           </div>
+          <div className="count" aria-live="polite">{treks ? `${treks.length} trek${treks.length === 1 ? '' : 's'}` : ''}</div>
+        </div>
+      </div>
+
+      <main className="page" id="treks" style={{ paddingTop: 0, animation: 'none' }}>
+        <div className="section-head">
+          <div>
+            <div className="eyebrow">Gilgit-Baltistan, Pakistan</div>
+            <h2>Choose your trail</h2>
+          </div>
+          <p>Meadows under Nanga Parbat, turquoise lakes in Ghizer, and glacier crossings to the foot of K2.</p>
         </div>
 
         <Alert>{error}</Alert>
         {!loading && treks?.length === 0 && <Empty>No treks match these filters. Try another region or difficulty.</Empty>}
 
-        <ul className="trek-list">
-          {treks?.map((t) => (
-            <li key={t.trek_id}>
-              <Link to={`/treks/${t.trek_id}`} className="trek-row">
-                <div>
-                  <h3>{t.trek_name}</h3>
-                  <div className="trek-meta">
-                    <Chip value={t.difficulty} />
-                    <span>{t.region}</span>
-                    <span>{t.duration_days} days</span>
-                    {t.permit_required && <span>Permit needed</span>}
+        <ul className="trek-grid">
+          {treks?.map((t, i) => (
+            <Reveal as="li" key={t.trek_id} delay={i % 3}>
+              <Link to={`/treks/${t.trek_id}`} className="trek-card">
+                <TrekImage name={t.trek_name} alt={t.trek_name} />
+                <div className="card-tags">
+                  <Chip value={t.difficulty} />
+                  {t.permit_required && <span className="chip plain">Permit needed</span>}
+                </div>
+                <div className="card-body">
+                  <div>
+                    <h3>{t.trek_name}</h3>
+                    <div className="region">{t.region} · {t.duration_days} days</div>
+                  </div>
+                  <Altitude meters={t.max_altitude_m} />
+                  <div className="card-foot">
+                    <div className="price">
+                      {t.open_departures > 0 ? (
+                        <>
+                          <small>from</small>
+                          <strong>{rs(t.from_price)}</strong>
+                          <small>next departure {date(t.next_departure)}</small>
+                        </>
+                      ) : (
+                        <small>No dates open</small>
+                      )}
+                    </div>
+                    <span className="go" aria-hidden="true">→</span>
                   </div>
                 </div>
-                <Altitude meters={t.max_altitude_m} />
-                <div className="trek-price">
-                  {t.open_departures > 0 ? (
-                    <>
-                      <span className="muted small">from</span>
-                      <strong>{rs(t.from_price)}</strong>
-                      <span className="muted small">next: {date(t.next_departure)}</span>
-                    </>
-                  ) : (
-                    <span className="muted small">No dates open</span>
-                  )}
-                </div>
               </Link>
-            </li>
+            </Reveal>
           ))}
         </ul>
       </main>

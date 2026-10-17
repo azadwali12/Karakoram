@@ -1,6 +1,6 @@
-import { StrictMode } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route, NavLink, Link, Navigate, Outlet, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, Link, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import './styles.css';
 import { AuthProvider, useAuth } from './auth.jsx';
 
@@ -23,21 +23,38 @@ import { TreksAdmin, GuidesAdmin, PortersAdmin, EquipmentAdmin } from './pages/a
 function Mark() {
   // two peaks, used as the logo
   return (
-    <svg width="30" height="20" viewBox="0 0 30 20" aria-hidden="true">
-      <path d="M0 20 L10 4 L15 11 L21 1 L30 20 Z" fill="#7fb2c9" />
+    <svg width="34" height="24" viewBox="0 0 30 20" aria-hidden="true">
+      <defs>
+        <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#7be0f0" /><stop offset="0.5" stopColor="#5b8cff" /><stop offset="1" stopColor="#a78bfa" />
+        </linearGradient>
+      </defs>
+      <path d="M0 20 L10 4 L15 11 L21 1 L30 20 Z" fill="url(#mark)" />
       <path d="M8.2 7 L10 4 L11.8 7 Z M19.4 4 L21 1 L22.7 4.5 Z" fill="#fff" />
     </svg>
   );
 }
 
+const initials = (name = '') => name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+
 function TopBar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  // Pages with a full-bleed photo at the top get a see-through bar until you scroll
+  const overHero = pathname === '/' || pathname.startsWith('/treks/');
   const out = () => { logout(); navigate('/'); };
   return (
-    <header className="topbar">
+    <header className={`topbar ${overHero ? 'over-hero' : ''} ${scrolled ? 'solid' : ''}`}>
       <div className="topbar-inner">
-        <Link to={user?.role === 'admin' ? '/admin' : '/'} className="brand"><Mark /> Karakoram Trails</Link>
+        <Link to={user?.role === 'admin' ? '/admin' : '/'} className="brand"><Mark /> <span>Karakoram Trails</span></Link>
         <nav className="topnav" aria-label="Main">
           {user?.role !== 'admin' && <NavLink to="/" end>Treks</NavLink>}
           {user?.role === 'customer' && <NavLink to="/my/bookings">My bookings</NavLink>}
@@ -46,14 +63,25 @@ function TopBar() {
         </nav>
         {user ? (
           <>
-            <span className="who">{user.name}</span>
+            <span className="who"><span className="avatar" aria-hidden="true">{initials(user.name)}</span><span>{user.name}</span></span>
             <button className="linkbtn" onClick={out}>Log out</button>
           </>
         ) : (
-          <NavLink to="/login" className="linkbtn">Log in</NavLink>
+          <NavLink to="/login" className="linkbtn cta">Log in</NavLink>
         )}
       </div>
     </header>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="footer">
+      <div className="footer-inner">
+        <Link to="/" className="brand"><Mark /> Karakoram Trails</Link>
+        <span>Guided treks across Gilgit-Baltistan · Hunza · Nagar · Skardu · Shigar · Ghizer</span>
+      </div>
+    </footer>
   );
 }
 
@@ -85,8 +113,11 @@ function AdminLayout() {
 }
 
 function App() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   return (
     <>
+      <div className="backdrop" aria-hidden="true"><div className="blob b1" /><div className="blob b2" /><div className="blob b3" /></div>
       <TopBar />
       <Routes>
         <Route path="/" element={<Browse />} />
@@ -118,6 +149,7 @@ function App() {
 
         <Route path="*" element={<div className="page"><h1>Page not found</h1><Link to="/">Go to treks</Link></div>} />
       </Routes>
+      {!pathname.startsWith('/admin') && pathname !== '/login' && <Footer />}
     </>
   );
 }
