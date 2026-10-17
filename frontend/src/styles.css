@@ -97,6 +97,7 @@ a:hover { color: #9be4f7; }
 }
 .panel { border-radius: var(--r); padding: 24px; }
 .panel + .panel { margin-top: 18px; }
+.two-col > .panel + .panel, .detail-grid > .panel + .panel { margin-top: 0; }
 
 /* ---------- top bar ---------- */
 .topbar {

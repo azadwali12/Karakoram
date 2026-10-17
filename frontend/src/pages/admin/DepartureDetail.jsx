@@ -38,7 +38,7 @@ export default function DepartureDetail() {
 
   return (
     <>
-      <Link to="/admin/departures" className="small">All departures</Link>
+      <Link to="/admin/departures" className="back">All departures</Link>
       <div className="page-head" style={{ marginTop: 10 }}>
         <div>
           <h1>{d.trek_name}</h1>

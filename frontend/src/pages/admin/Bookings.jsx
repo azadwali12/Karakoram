@@ -58,7 +58,7 @@ export function AdminBookingDetail() {
   const { id } = useParams();
   return (
     <>
-      <Link to="/admin/bookings" className="small">All bookings</Link>
+      <Link to="/admin/bookings" className="back">All bookings</Link>
       <div style={{ marginTop: 10 }}><BookingView id={id} admin /></div>
     </>
   );

@@ -7,7 +7,7 @@ export default function BookingDetail() {
   const [params] = useSearchParams();
   return (
     <main className="page">
-      <Link to="/my/bookings" className="small">My bookings</Link>
+      <Link to="/my/bookings" className="back">My bookings</Link>
       <div style={{ marginTop: 12 }}>
         <BookingView id={id} isNew={params.get('new') === '1'} />
       </div>
