@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { rs, date } from '../api.js';
 import { useLoad, Alert, Chip, Altitude, Empty, Reveal } from '../components/ui.jsx';
 import { TrekImage } from '../components/media.jsx';
+import { Discover, TrailMap, NextDeparture, Glimpse, PlanTrip } from '../components/home.jsx';
+import Weather from '../components/Weather.jsx';
 import { useAuth } from '../auth.jsx';
 
 export default function Browse() {
@@ -12,8 +14,17 @@ export default function Browse() {
   const { data: treks, error, loading } = useLoad(`/treks?${qs}`, [qs]);
   const { data: all } = useLoad('/treks');
   const { data: regions } = useLoad('/regions');
+  const { data: gear } = useLoad('/equipment');
   const { user } = useAuth();
-  const set = (k) => (e) => setFilters({ ...filters, [k]: e.target.value });
+  const [tile, setTile] = useState('all');
+  const set = (k) => (e) => { setTile(null); setFilters({ ...filters, [k]: e.target.value }); };
+
+  // A discover tile replaces the filters and jumps down to the results
+  const pick = (d) => {
+    setTile(d.key);
+    setFilters({ region: '', difficulty: '', search: '', ...d.filters });
+    document.getElementById('treks')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const highest = all ? Math.max(...all.map((t) => t.max_altitude_m)) : null;
   const openDates = all ? all.reduce((s, t) => s + Number(t.open_departures || 0), 0) : null;
@@ -71,8 +82,10 @@ export default function Browse() {
         </div>
       </div>
 
-      <main className="page" id="treks" style={{ paddingTop: 0, animation: 'none' }}>
-        <div className="section-head">
+      <main className="page" style={{ paddingTop: 0, animation: 'none' }}>
+        <Discover active={tile} onPick={pick} />
+
+        <div className="section-head" id="treks">
           <div>
             <div className="eyebrow">Gilgit-Baltistan, Pakistan</div>
             <h2>Choose your trail</h2>
@@ -117,6 +130,31 @@ export default function Browse() {
             </Reveal>
           ))}
         </ul>
+
+        <TrailMap treks={all} />
+        <NextDeparture treks={all} />
+      </main>
+
+      <Reveal className="strip">
+        <div className="strip-inner">
+          <span><b>Pay just 30% to confirm your seats.</b> The rest in instalments before you leave.</span>
+          <a href="#treks" className="btn secondary small">Find your dates</a>
+        </div>
+      </Reveal>
+
+      <main className="page" style={{ paddingTop: 0, animation: 'none' }}>
+        <Glimpse />
+        <PlanTrip user={user} gearCount={gear?.length} />
+        <section className="weather-section">
+          <div className="section-head">
+            <div>
+              <div className="eyebrow">Before you pack</div>
+              <h2>Weather in the mountains</h2>
+            </div>
+            <p>Live conditions and the next six days in the towns where our treks start.</p>
+          </div>
+          <Weather />
+        </section>
       </main>
     </>
   );
