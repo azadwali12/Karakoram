@@ -233,7 +233,7 @@ a:hover { color: #9be4f7; }
 .trek-card:hover .media .scene, .trek-card:hover .media img { transform: scale(1.07); }
 .trek-card .media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(7,13,26,0.75)); }
 .card-tags { position: absolute; top: 14px; left: 14px; right: 14px; z-index: 2; display: flex; gap: 8px; flex-wrap: wrap; }
-.card-tags .chip { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); background-color: rgba(7,13,26,0.5); }
+.trek-card .card-tags .chip { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); background-color: rgba(7,13,26,0.78); }
 .card-days { position: absolute; bottom: 14px; left: 16px; z-index: 2; font: 600 0.85rem var(--body); color: #fff; display: flex; gap: 14px; }
 .card-body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
 .card-body h3 { font-size: 1.35rem; margin: 0; letter-spacing: -0.02em; }
