@@ -219,11 +219,11 @@ export function Glimpse() {
 // ---------- Plan your trip: three entry points ----------
 export function PlanTrip({ user, gearCount }) {
   const cards = [
-    { title: 'Treks and dates', text: 'Compare routes, check seats left and book with a 30% advance.', to: '#treks', seed: 3 },
-    { title: 'Gear rental', text: `${gearCount ?? 'Plenty of'} items to rent, from sleeping bags to crampons. Add them when you book.`, to: '#treks', seed: 9 },
+    { title: 'Treks and dates', text: 'Compare routes, check seats left and book with a 30% advance.', to: '#treks', seed: 3, img: 'treks' },
+    { title: 'Gear rental', text: `${gearCount ?? 'Plenty of'} items to rent, from sleeping bags to crampons. Add them when you book.`, to: '#treks', seed: 9, img: 'gear' },
     user?.role === 'customer'
-      ? { title: 'Your bookings', text: 'Pay instalments, change gear or cancel under our refund policy.', to: '/my/bookings', seed: 14 }
-      : { title: 'Create an account', text: 'Takes a minute. We need your CNIC or passport for trekking permits.', to: '/login', seed: 14 },
+      ? { title: 'Your bookings', text: 'Pay instalments, change gear or cancel under our refund policy.', to: '/my/bookings', seed: 14, img: 'account' }
+      : { title: 'Create an account', text: 'Takes a minute. We need your CNIC or passport for trekking permits.', to: '/login', seed: 14, img: 'account' },
   ];
   return (
     <section className="plan">
@@ -237,7 +237,7 @@ export function PlanTrip({ user, gearCount }) {
         {cards.map((c, i) => {
           const inner = (
             <>
-              <TrekImage name={c.title} seed={c.seed} alt="" />
+              <TrekImage name={c.title} seed={c.seed} src={`/images/plan/${c.img}.jpg`} alt="" />
               <div className="plan-body">
                 <h3>{c.title}</h3>
                 <p className="muted">{c.text}</p>
