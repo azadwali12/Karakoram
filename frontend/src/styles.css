@@ -176,7 +176,7 @@ a:hover { color: #9be4f7; }
   content: ''; position: absolute; inset: 0;
   background:
     linear-gradient(180deg, rgba(7,13,26,0.55) 0%, rgba(7,13,26,0) 28%, rgba(7,13,26,0.35) 60%, var(--bg) 100%),
-    radial-gradient(900px 400px at 15% 75%, rgba(7,13,26,0.55), transparent 70%);
+    linear-gradient(90deg, rgba(7,13,26,0.82) 0%, rgba(7,13,26,0.55) 38%, rgba(7,13,26,0) 68%);
 }
 .hero-inner { position: relative; z-index: 2; width: 100%; max-width: 1240px; margin: 0 auto; padding: 140px 24px 150px; }
 .hero h1 {
